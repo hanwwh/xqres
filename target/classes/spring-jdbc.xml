@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx" 
+       xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+ 	   xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="
+       	  http://www.springframework.org/schema/beans
+		  http://www.springframework.org/schema/beans/spring-beans.xsd
+		  http://www.springframework.org/schema/context
+		  http://www.springframework.org/schema/context/spring-context.xsd
+		  http://www.springframework.org/schema/tx
+		  http://www.springframework.org/schema/tx/spring-tx.xsd
+		  http://www.springframework.org/schema/jdbc 
+		  http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+		  http://www.springframework.org/schema/aop
+		  http://www.springframework.org/schema/aop/spring-aop.xsd
+		  http://www.springframework.org/schema/mvc
+		  http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+   
+    <!-- 引入配置文件 -->
+    <bean id="propertyConfigurer"
+          class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="location" value="classpath:jdbc.properties" />
+    </bean>
+
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+          destroy-method="close">
+        <property name="user" value="${user}" />
+        <property name="password" value="${password}" />
+        <property name="driverClass" value="${driverClass}" />
+        <property name="jdbcUrl" value="${jdbcUrl}" />
+        <property name="initialPoolSize" value="${initialPoolSize}"></property>
+        <property name="maxIdleTime" value="${maxIdleTime}"></property>
+        <property name="maxPoolSize" value="${maxPoolSize}"></property>
+        <property name="minPoolSize" value="${minPoolSize}"></property>
+        <property name="acquireIncrement" value="${acquireIncrement}"></property>
+        <property name="acquireRetryAttempts" value="${acquireRetryAttempts}"></property>
+        <property name="acquireRetryDelay" value="${acquireRetryDelay}"></property>
+        <property name="automaticTestTable" value="${automaticTestTable}"></property>
+        <property name="testConnectionOnCheckin" value="${testConnectionOnCheckin}"></property>
+        <property name="checkoutTimeout" value="${checkoutTimeout}"></property>
+        <property name="idleConnectionTestPeriod" value="${idleConnectionTestPeriod}"></property>
+        <property name="breakAfterAcquireFailure" value="false"></property>
+        <property name="autoCommitOnClose" value="false"></property>
+    </bean>
+    
+    <!-- 配置spring-jdbcTemplate模板 -->  
+    <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">  
+        <property name="dataSource" ref="dataSource"></property>  
+    </bean>
+    
+    <!-- 配置JDBC数据源的局部事务管理器，使用DataSourceTransactionManager 类   
+                  该类实现PlatformTransactionManager接口，是针对采用数据源连接的特定实现-->  
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">  
+        <property name="dataSource" ref="dataSource"></property>  
+    </bean>
+    
+    <!-- 打开tx事务注解管理功能 在service中@Transactional 
+    	一般的话事务都是在action中添加，因为在action中更会涉及到多个事务的操作，操作不同表，
+    	我们可以对整个action添加事务，也可以对具体方法添加事务，在为方法添加了事务后，对业务操作类就不需要再添加事务了
+    	
+    	默认情况下,一个有事务方法, 遇到RuntiomeException 时会回滚 . 遇到 Checked Exception(受检查的异常) 是不会回滚 的. 
+    	要想所有异常都回滚,要加上 @Transactional( rollbackFor={Exception.class,其它异常}) .
+    	
+    	proxy-target-class：表示将使用的代码机制，默认false表示使用JDK代理，如果为true将使用CGLIB
+		建议只在实现类或实现类的方法上使用@Transactional，而不要在接口上使用，这是因为如果使用JDK代理机制是没问题，因为其使用基于接口的代理；
+		而使用使用CGLIB代理机制时就会遇到问题，因为其使用基于类的代理而不是接口，这是因为接口上的@Transactional注解是“不能继承的”；
+		混合事务管理最大问题在于如果我们使用第三方ORM框架，如hibernate，会遇到一级及二级缓存问题，尤其是二级缓存可能造成如使用spring JDBC和Hibernate查询出来的数据不一致等。
+		因此不建议使用这种混合使用和混合事务管理。
+    -->  
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+    
+    <!-- 
+    	@Transactional(类型=值)
+
+		事物传播行为介绍:
+		@Transactional(propagation=Propagation.REQUIRED) 
+		指定当前方法必需在事务环境中运行，如果当前有事务环境就加入当前正在执行的事务环境，如果当前没有事务，就新建一个事务。这是默认值。
+		@Transactional(propagation=Propagation.NOT_SUPPORTED) 
+		容器不为这个方法开启事务
+		指定当前方法以非事务方式执行操作，如果当前存在事务，就把当前事务挂起，等我以非事务的状态运行完，再继续原来的事务。
+		@Transactional(propagation=Propagation.REQUIRES_NEW) 
+		不管是否存在事务,都创建一个新的事务,原来的挂起,新的执行完毕,继续执行老的事务
+		指定当前方法总是会为自己发起一个新的事务，如果发现当前方法已运行在一个事务中,则原有事务被挂起,我自己创建一个属于自己的事务,直我自己这个方法commit结束,原先的事务才会恢复执行。 
+		@Transactional(propagation=Propagation.MANDATORY) 
+		必须在一个已有的事务中执行,否则抛出异常
+		指定当前方法必须加入当前事务环境，如果当前没有事务，就抛出异常。 
+		@Transactional(propagation=Propagation.NEVER) 
+		必须在一个没有的事务中执行,否则抛出异常(与Propagation.MANDATORY相反)
+		指定当前方法绝对不能在事务范围内执行，如果方法在某个事务范围内执行，容器就抛异常，只有没关联到事务，才正常执行。 
+		@Transactional(propagation=Propagation.SUPPORTS) 
+		如果其他bean调用这个方法,在其他bean中声明事务,那就用事务.如果其他bean没有声明事务,那就不用事务.
+		指定当前方法加入当前事务环境，如果当前没有事务，就以非事务方式执行。
+		@Transactional(propagation=Propagation.NESTED)
+		指定当前方法执行时， 如果已经有一个事务存在,则运行在这个嵌套的事务中.如果当前环境没有运行的事务，就新建一个事务，并与父事务相互独立，这个事务拥有多个可以回滚的保证 点。
+		就是指我自己内部事务回滚不会对外部事务造成影响，只对DataSourceTransactionManager事务管理器起效。 
+	-->
+
+</beans>

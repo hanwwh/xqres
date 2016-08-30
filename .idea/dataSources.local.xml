@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="dataSourceStorageLocal">
+    <data-source name="MySQL - xqres@115.159.223.184" uuid="07a29413-edd5-4a5c-af6c-63cbb511907d">
+      <database-info product="MySQL" version="5.5.50-0ubuntu0.14.04.1" jdbc-version="4.0" driver-name="MySQL Connector Java" driver-version="mysql-connector-java-5.1.38 ( Revision: fe541c166cec739c74cc727c5da96c1028b4834a )">
+        <extra-name-characters>#@</extra-name-characters>
+        <identifier-quote-string>`</identifier-quote-string>
+      </database-info>
+      <case-sensitivity plain-identifiers="exact" quoted-identifiers="exact" />
+      <secret-storage>master_key</secret-storage>
+      <user-name>yuhb</user-name>
+      <introspection-scope>xqres:</introspection-scope>
+      <resolve-scope>xqres:</resolve-scope>
+    </data-source>
+  </component>
+</project>
