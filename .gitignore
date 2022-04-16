@@ -1,1 +1,38 @@
-/.idea/
+# Compiled class file
+*.class
+
+# Eclipse files
+.project
+.classpath
+.settings/
+
+# Intellij
+*.ipr
+*.iml
+*.iws
+.idea/
+
+# Maven
+target/
+out/
+bin/
+
+# Gradle
+build
+.gradle
+
+# log file
+*.log
+log/
+
+# out
+**/out/
+
+# Mac
+.DS_Store
+
+# others
+*.jar
+*.war
+temp/
+tmp/
